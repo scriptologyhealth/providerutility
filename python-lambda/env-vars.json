@@ -1,0 +1,10 @@
+{
+  "Variables": {
+    "DB_HOST": "rxlive-prod-rds.chjsfth88bkb.us-east-1.rds.amazonaws.com",
+    "DB_PORT": "3306",
+    "DB_USER": "rxliveprod",
+    "DB_PASSWORD": "L=gwCmYCpdxih.A",
+    "DB_NAME": "rxliveprod"
+  }
+}
+

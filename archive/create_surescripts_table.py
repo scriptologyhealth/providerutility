@@ -1,0 +1,164 @@
+#!/usr/bin/env python3
+"""
+Script to create the Surescripts Provider Directory table schema
+and import data from the text file.
+"""
+
+import mysql.connector
+import sys
+from datetime import datetime
+
+# Database connection configuration
+db_config = {
+    'host': 'surescripts-provider-directory.chjsfth88bkb.us-east-1.rds.amazonaws.com',
+    'port': 3306,
+    'user': 'admin',
+    'password': 'Surescripts2025!',
+    'database': 'surescripts_provider_directory',
+    'autocommit': True,
+    'connect_timeout': 30
+}
+
+# Field definitions based on Surescripts Provider Directory format
+FIELD_DEFINITIONS = [
+    ('npi', 'VARCHAR(20)'),
+    ('entity_id', 'VARCHAR(20)'),
+    ('taxonomy_code_1', 'VARCHAR(20)'),
+    ('taxonomy_code_2', 'VARCHAR(20)'),
+    ('taxonomy_code_3', 'VARCHAR(20)'),
+    ('last_name', 'VARCHAR(100)'),
+    ('first_name', 'VARCHAR(100)'),
+    ('middle_name', 'VARCHAR(100)'),
+    ('suffix', 'VARCHAR(20)'),
+    ('organization_name', 'VARCHAR(200)'),
+    ('address_line_1', 'VARCHAR(200)'),
+    ('address_line_2', 'VARCHAR(200)'),
+    ('city', 'VARCHAR(100)'),
+    ('state', 'VARCHAR(10)'),
+    ('zip_code', 'VARCHAR(20)'),
+    ('country', 'VARCHAR(10)'),
+    ('mailing_address_line_1', 'VARCHAR(200)'),
+    ('mailing_address_line_2', 'VARCHAR(200)'),
+    ('mailing_city', 'VARCHAR(100)'),
+    ('mailing_state', 'VARCHAR(10)'),
+    ('mailing_zip_code', 'VARCHAR(20)'),
+    ('phone_number', 'VARCHAR(20)'),
+    ('fax_number', 'VARCHAR(20)'),
+    ('email', 'VARCHAR(200)'),
+    ('website', 'VARCHAR(200)'),
+    ('effective_date', 'DATETIME'),
+    ('expiration_date', 'DATETIME'),
+    ('message_type', 'VARCHAR(50)'),
+    ('specialty', 'VARCHAR(100)'),
+    ('last_updated', 'DATETIME'),
+    ('status', 'VARCHAR(50)'),
+    ('active', 'VARCHAR(10)'),
+    ('version', 'VARCHAR(20)'),
+    ('field_33', 'VARCHAR(200)'),
+    ('field_34', 'VARCHAR(200)'),
+    ('field_35', 'VARCHAR(200)'),
+    ('field_36', 'VARCHAR(200)'),
+    ('field_37', 'VARCHAR(200)'),
+    ('field_38', 'VARCHAR(200)'),
+    ('field_39', 'VARCHAR(200)'),
+    ('field_40', 'VARCHAR(200)'),
+    ('field_41', 'VARCHAR(200)'),
+    ('field_42', 'VARCHAR(200)'),
+    ('field_43', 'VARCHAR(200)'),
+    ('field_44', 'VARCHAR(200)'),
+    ('field_45', 'VARCHAR(200)'),
+    ('field_46', 'VARCHAR(200)'),
+    ('field_47', 'VARCHAR(200)'),
+    ('field_48', 'VARCHAR(200)'),
+    ('field_49', 'VARCHAR(200)'),
+    ('field_50', 'VARCHAR(200)')
+]
+
+def create_database_and_table():
+    """Create the database and table schema."""
+    try:
+        # Connect without specifying database first
+        config_without_db = db_config.copy()
+        del config_without_db['database']
+        
+        conn = mysql.connector.connect(**config_without_db)
+        cursor = conn.cursor()
+        
+        # Create database
+        print("Creating database...")
+        cursor.execute("CREATE DATABASE IF NOT EXISTS surescripts_provider_directory")
+        cursor.execute("USE surescripts_provider_directory")
+        
+        # Create table
+        print("Creating table schema...")
+        create_table_sql = """
+        CREATE TABLE IF NOT EXISTS provider_directory (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            """
+        
+        # Add all fields
+        field_definitions = []
+        for field_name, field_type in FIELD_DEFINITIONS:
+            field_definitions.append(f"    {field_name} {field_type}")
+        
+        create_table_sql += ",\n".join(field_definitions)
+        create_table_sql += """,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+            INDEX idx_npi (npi),
+            INDEX idx_entity_id (entity_id),
+            INDEX idx_last_name (last_name),
+            INDEX idx_first_name (first_name),
+            INDEX idx_organization_name (organization_name),
+            INDEX idx_city (city),
+            INDEX idx_state (state),
+            INDEX idx_zip_code (zip_code),
+            INDEX idx_phone_number (phone_number),
+            INDEX idx_email (email)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+        """
+        
+        cursor.execute(create_table_sql)
+        print("Table created successfully!")
+        
+        cursor.close()
+        conn.close()
+        
+        return True
+        
+    except Exception as e:
+        print(f"Error creating database/table: {e}")
+        return False
+
+def test_connection():
+    """Test the database connection."""
+    try:
+        conn = mysql.connector.connect(**db_config)
+        cursor = conn.cursor()
+        cursor.execute("SELECT 1")
+        result = cursor.fetchone()
+        cursor.close()
+        conn.close()
+        print("Database connection successful!")
+        return True
+    except Exception as e:
+        print(f"Database connection failed: {e}")
+        return False
+
+if __name__ == "__main__":
+    print("Surescripts Provider Directory Database Setup")
+    print("=" * 50)
+    
+    # First create the database and table
+    if create_database_and_table():
+        print("\nDatabase and table created successfully!")
+        
+        # Test connection
+        if test_connection():
+            print("Ready for data import!")
+        else:
+            print("Connection test failed!")
+    else:
+        print("Failed to create database/table!")
+        sys.exit(1)
+
